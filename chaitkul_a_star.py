@@ -233,3 +233,76 @@ def user_input():
     return start_node, goal_node, radius
 
 start_node, goal_node, radius = user_input()
+closed_dict = {}
+open_list = []
+
+theta = start_node[2]
+current_node = start_node
+x = radius * np.cos(np.deg2rad(theta))
+y = radius * np.sin(np.deg2rad(theta))
+
+# Action set to move the robot 
+
+action_set = [move_center, move_up_30, move_up_60, move_down_30, move_down_60]
+
+V = np.empty((1201,501,13), dtype=object)
+for x in range(1201):
+    for y in range(501):
+        for theta in range(13):
+            V[x][y][theta] = 0
+
+xg = goal_node[0]
+yg = goal_node[1]
+
+# Setting the distance and angle threshold
+
+threshold_dist = 0.5
+threshold_angle = 30
+xc = current_node[0]
+yc = current_node[1]
+cost_to_go = math.sqrt((xg - current_node[0])**2 + (yg - current_node[1])**2)
+heapq.heappush(open_list, (cost_to_go, 0, start_node))
+closed_dict[start_node] = (start_node, None, 0 + cost_to_go)
+V[int(start_node[0]/threshold_dist)][int(start_node[1]/threshold_dist)][int(start_node[2]/threshold_angle)] = 1
+
+def a_star(start_node, goal_node):
+    """A-Star Algorithm to find out the optimal path between start node and goal node.
+
+    Args:
+        start_node (tuple): (start_x,start_y,start_theta)
+        goal_node (tuple): (goal_x,goal_y,goal_theta)
+    """
+    while open_list:
+
+        cost_to_go, cost_to_come, current_node = heapq.heappop(open_list)
+        if current_node == goal_node:
+            print("Goal node reached.")
+            break
+        elif V[int(current_node[0]/threshold_dist)][int(current_node[1]/threshold_dist)][int(current_node[2]/threshold_angle)] == 1 and closed_dict[current_node][2] < cost_to_come + cost_to_go:
+            continue
+        for move in action_set:
+            child_node, cost = move(current_node)
+            if cost is not None:
+                cost_to_come += cost
+            try:
+                if child_node is not None and V[int(child_node[0]/threshold_dist)][int(child_node[1]/threshold_dist)][int(child_node[2]/threshold_angle)] != 1 and (child_node[0],child_node[1]) not in obstacle:
+                    cost_to_go = math.sqrt((xg - child_node[0])**2 + (yg - child_node[1])**2)   # Calculating the cost to go the goal node from child node
+                    heapq.heappush(open_list, (cost_to_go, cost_to_come, child_node))           # Appending the child node to the open list
+                    closed_dict[child_node] = (child_node, current_node, cost_to_come + cost_to_go) # Updating the visited nodes in the dictionary
+                    V[int(child_node[0]/threshold_dist)][int(child_node[1]/threshold_dist)][int(child_node[2]/threshold_angle)] = 1 # Storing information to avoid duplicate nodes
+                    point1 = (closed_dict[child_node][1][0], closed_dict[child_node][1][1])
+                    point2 = (closed_dict[child_node][0][0], closed_dict[child_node][0][1])
+                    cv2.arrowedLine(canvas, point1, point2, (0,255,0), 1, tipLength=0.5)    # Plotting the arrowed line for visited nodes
+                    canvas_flip = cv2.flip(canvas,0)    # Inverting the y axis since origin is at the bottom left
+                    cv2.imshow("canvas", canvas_flip)
+                    cv2.waitKey(1)
+                elif child_node is not None and V[int(child_node[0]/threshold_dist)][int(child_node[1]/threshold_dist)][int(child_node[2]/threshold_angle)] == 1 and closed_dict[child_node][2] > cost_to_come + cost_to_go and (child_node[0],child_node[1]) not in obstacle:
+                    closed_dict[child_node] = (child_node, current_node, cost_to_come + cost_to_go) # Updating the total cost if the node has already been visited
+            except:
+                pass
+
+    if not open_list:
+        print("Goal node cannot be reached.")
+
+              
+a_star(start_node, goal_node)
