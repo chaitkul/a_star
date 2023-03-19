@@ -191,3 +191,45 @@ def make_canvas():
     return obstacle, canvas
 
 obstacle, canvas = make_canvas()
+
+# Function to get the user input
+
+def user_input():
+    """Takes start and goal coordinates as user input. Also gets the step size of the robot
+
+    Returns:
+        tuple: (start_node, goal_node, radius)
+    """    
+    valid_input = False
+    while valid_input == False:
+        start_x = int(input("Enter X coordinate of start node: "))  # X coordinate of start node
+        start_y = int(input("Enter Y coordinate of start node: "))  # Y coordinate of start node
+        start_theta = int(input("Enter the theta at the start node from 0 to 330 in multiples of 30: "))    # Angle at the start node
+        goal_x = int(input("Enter X coordinate of goal node: "))    # X coordinate of goal node
+        goal_y = int(input("Enter Y coordinate of goal node: "))    # Y coordinate of goal node
+        goal_theta = int(input("Enter the theta at the goal node from 0 to 330 in multiples of 30: "))      # Angle at the goal node
+        radius = int(input("Enter the step size for the vector between 1 and 10: "))    # Step size of the robot
+
+        
+        start_node = (start_x,start_y,start_theta)
+        goal_node = (goal_x,goal_y,goal_theta)
+    
+        if start_node in obstacle:
+            print(f"Start node {start_node} is in obstacle space. Enter another node.") # Error message if start node is in obstacle space
+            valid_input = False
+        elif goal_node in obstacle:
+            print(f"Goal node {goal_node} is in obstacle space. Enter another node") # Error message if goal node is in obstacle space
+            valid_input = False
+        elif start_x<0 or start_x>600 or goal_x<0 or goal_x>600 or start_y<0 or start_y>250 or goal_y<0 or goal_y>250 or start_theta<0 or start_theta>=360 or goal_theta<0 or goal_theta>=360:
+            print("The coordinates you entered are beyond the scope of the map. Enter valid start and goal coordinates.") # Error message if start or goal node is beyond the scope of the map
+            valid_input = False
+        elif radius<1 or radius>10:
+            valid_input = False
+            print("Enter a step size between 1 and 10.")    # Error message if the size is not withiin the specified limit
+        elif start_node not in obstacle and goal_node not in obstacle:
+            valid_input = True
+            break
+        
+    return start_node, goal_node, radius
+
+start_node, goal_node, radius = user_input()
