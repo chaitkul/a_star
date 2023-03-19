@@ -306,3 +306,44 @@ def a_star(start_node, goal_node):
 
               
 a_star(start_node, goal_node)
+backtrack_dict = {}
+
+# Function to generate path using backtracking
+
+def generate_path(start_node, goal_node):
+    """Generates path from the start node to the goal node
+
+    Args:
+        start_node (tuple): (start_x,start_y,start_theta)
+        goal_node (_type_): (goal_x,goal_y,goal_theta)
+
+    Returns:
+        list: backtrack_path
+    """    
+    backtrack_path = []
+    current_node = goal_node
+    while closed_dict[current_node][0] != closed_dict[start_node][0]:
+        backtrack_path.append((closed_dict[current_node][0], round(closed_dict[current_node][2],1)))
+        current_node = closed_dict[current_node][1]
+    backtrack_path.append((closed_dict[start_node][0], round(closed_dict[start_node][2],1)))
+    backtrack_path.reverse()
+    for index, node in enumerate(backtrack_path):
+        backtrack_dict[index] = (node)
+    
+    return backtrack_path
+
+path = generate_path(start_node, goal_node)
+print(path) # Printing the backtrack path along with the cost
+
+for key in backtrack_dict:
+    try:
+        point1 = (backtrack_dict[key][0][0], backtrack_dict[key][0][1])
+        point2 = (backtrack_dict[int(key+1)][0][0], backtrack_dict[int(key+1)][0][1])
+        cv2.arrowedLine(canvas, point1, point2, (255,255,255),1, tipLength=1) # Plotting the nodes in the path as arrowed lines
+        canvas_flip = cv2.flip(canvas,0)    # Inverting the y axis since origin is at the bottom left
+        cv2.imshow("canvas", canvas_flip)
+        cv2.waitKey(100)
+    except:
+        pass
+
+print(f"Total cost required to reach goal node : {closed_dict[goal_node][2]}")  # Printing the total cost required to reach the goal node
